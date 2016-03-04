@@ -3,7 +3,7 @@
 import random
 
 
-class Currency:
+class Discriminant:
     '''A class to calculate currencies'''
     # constructor
     def __init__(self):
