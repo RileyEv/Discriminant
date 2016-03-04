@@ -3,37 +3,41 @@
 import random
 
 
-class Discriminant:
+class DiscriminantClass:
     '''A class to calculate currencies'''
     # constructor
     def __init__(self):
         pass
 
     def generateQuestion(self, difficulty):
-        maxCoefficient = 9
-        minCoefficient = 1
+        self._maxCoefficient = 9
+        self._minCoefficient = -9
         if difficulty == 'Medium':
-            maxCoefficient = 15
-            minCoefficient = 4
+            self._maxCoefficient = 15
+            self._minCoefficient = -15
         elif difficulty == 'Hard':
-            maxCoefficient = 20
-            minCoefficient = 7
+            self._maxCoefficient = 20
+            self._minCoefficient = -20
         elif difficulty == 'God':
-            maxCoefficient = 30
-            minCoefficient = 15
+            self._maxCoefficient = 30
+            self._minCoefficient = -30
 
-        coefficients = []
-        for i in range(3):
-            coefficients.append(random.randint(minCoefficient, maxCoefficient))
+        self._coefficients = [
+            random.randint(
+                self._minCoefficient,
+                self._maxCoefficient
+            ) for i in range(3)
+        ]
+        self._discriminant = (self._coefficients[1]) ^ 2 - 4 * self._coefficients[0] * self._coefficients[2]
 
-        if ((coefficients[1]) ^ 2 - 4 * coefficients[0] * coefficients[2]) > 0:
-            answer = 'real'
-        elif ((coefficients[1]) ^ 2 - 4 * coefficients[0] * coefficients[2]) < 0:
-            answer = 'imaginary'
+        if self._discriminant > 0:
+            self._answer = 'real'
+        elif self._discriminant < 0:
+            self._answer = 'imaginary'
         else:
-            answer = 'equal'
+            self._answer = 'equal'
 
         return {
-            'coefficients': coefficients,
-            'answer': answer,
+            'coefficients': self._coefficients,
+            'answer': self._answer,
         }

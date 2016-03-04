@@ -3,6 +3,7 @@
 import sys
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
+
 from discriminantClass import *
 
 
@@ -10,7 +11,7 @@ class mainWindow(QMainWindow):
     '''this class creates a main window to run the main program'''
     def __init__(self):
         super(mainWindow, self).__init__()
-        self.discriminant_class = Discriminant()
+        self.discriminant_class = DiscriminantClass()
         self.setWindowTitle('Discriminant Game')
         self.title_font = QFont('Helvetica', 90, QFont.Helvetica)
         self.button_font = QFont('Helvetica', 30, QFont.Helvetica)
@@ -29,6 +30,7 @@ class mainWindow(QMainWindow):
     def create_main_window_layout(self):
         self.title_label = QLabel('Discriminant')
         self.title_label.setFont(self.title_font)
+        self.title_label.setAlignment(Qt.AlignCenter | Qt.AlignVCenter)
         self.difficulty_label = QLabel('Difficulty: ')
         self.difficulty_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.start_button = QPushButton('Start')
@@ -90,16 +92,16 @@ class mainWindow(QMainWindow):
     def create_question_layout(self):
         self.question_layout = QGridLayout()
         self.question_internal_layout = QGridLayout()
-        self.question_label = QLabel('')
+        self.question_label = QLabel(u'5x{0} + 6x + 10'.format(QChar(0x00B2)))
         self.question_label.setFont(self.title_font)
-        self.question_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        self.question_label.setAlignment(Qt.AlignCenter | Qt.AlignVCenter)
         self.countdown_label = QLabel('10')
-        self.countdown_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-        self.equal_roots_button = QButton('Equal\n Roots')
+        self.countdown_label.setAlignment(Qt.AlignCenter | Qt.AlignVCenter)
+        self.equal_roots_button = QPushButton('Equal Roots')
         self.equal_roots_button.setFont(self.button_font)
-        self.imaginary_roots_button = QButton('Imaginary\n Roots')
-        self.imaiginary_roots_button.setFont(self.button_font)
-        self.real_roots_button = QButton('Real\n Roots')
+        self.imaginary_roots_button = QPushButton('Imaginary Roots')
+        self.imaginary_roots_button.setFont(self.button_font)
+        self.real_roots_button = QPushButton('Real Roots')
         self.real_roots_button.setFont(self.button_font)
         #############################
         #             #             #
@@ -123,12 +125,14 @@ class mainWindow(QMainWindow):
         #           2,0             #
         #     Internal Layout       #
         #############################
-        self.question_layout.addLayout(self.countdown_label, 0, 0)
+        self.question_layout.addWidget(self.countdown_label, 0, 0)
         self.question_layout.addWidget(self.question_label, 1, 0)
         self.question_layout.addWidget(self.question_internal_widget, 2, 0)
         self.view_question_layout = QWidget()
         self.view_question_layout.setLayout(self.question_layout)
-        self.convert_submit_button.clicked.connect(self.convert_the_currencies)
+        self.equal_roots_button.clicked.connect(lambda: self.answer_reaction('equal'))
+        self.real_roots_button.clicked.connect(lambda: self.answer_reaction('real'))
+        self.imaginary_roots_button.clicked.connect(lambda: self.answer_reaction('imaginary'))
 
     def start_action(self):
         self.timer_time = 3
@@ -142,32 +146,68 @@ class mainWindow(QMainWindow):
         if self.timer_time == 0:
             self.start_timer.stop()
             self.start_timer_label.setText('3')
-            self.stacked_layout.setCurrentIndex(0)
-            self.start_questions()
+            self.stacked_layout.setCurrentIndex(2)
+            self.difficulty = self.difficulty_combobox.currentText()
+            self.difficulty_combobox.setCurrentIndex(0)
+            self.question_num = 0
+            self.new_question()
         else:
             self.start_timer_label.setText(str(self.timer_time))
 
-    def start_questions(self):
-        self.question_num = 1
+    def new_question(self):
+        self.question_data = self.discriminant_class.generateQuestion(
+            self.difficulty
+        )
+        print(self.question_data)
+        self.question_label.setText(
+            u'{1}x{0} + {2}x + {3}'.format(
+                QChar(0x00B2),
+                self.question_data['coefficients'][0],
+                self.question_data['coefficients'][1],
+                self.question_data['coefficients'][2],
+            )
+        )
+        self.question_num += 1
+        self.countdown_label.setText('10')
         self.timer_time = 10
-        while question_num != 11: 
-            self.countdown_timer = QTimer()
-            self.countdown_timer.timeout.connect(self.question_timer_countdown)
-            self.countdown_timer.start(1000)
-            
+        self.countdown_timer = QTimer()
+        self.countdown_timer.timeout.connect(self.question_timer_countdown)
+        self.countdown_timer.start(1000)
+
     def question_timer_countdown(self):
         self.timer_time = int(self.countdown_label.text()) - 1
         if self.timer_time == 0:
-            self.start_timer.stop()
-            self.countdown_label.setText('3')
+            self.countdown_timer.stop()
+            self.countdown_label.setText('10')
             if self.difficulty == 'God':
-                self.message_box('HAHAHAHAHAHAH', 'NICE TRY!!!!')
+                self.message_box(
+                    'HAHAHAHAHAHAH',
+                    "You thought you were good enough, but you weren't!"
+                )
             else:
-                self.message_box('Try again', 'You failed')
-            
+                self.message_box('Too slow!', 'Better luck next time')
             self.stacked_layout.setCurrentIndex(0)
         else:
-            self.start_timer_label.setText(str(self.timer_time))
+            self.countdown_label.setText(str(self.timer_time))
+
+    def answer_reaction(self, button_clicked):
+        self.countdown_timer.stop()
+        if button_clicked == self.question_data['answer']:
+            if self.question_num == 10:
+                self.stacked_layout.setCurrentIndex(0)
+                self.message_box(
+                    'Congratulations',
+                    'Now try the next difficulty!'
+                )
+            else:
+                self.new_question()
+        else:
+            self.stacked_layout.setCurrentIndex(0)
+            if self.question_num == 10:
+                self.message_box('Hard Luck', 'You got so close! :(')
+            else:
+                self.message_box('Try again', 'Better luck next time')
+
     def message_box(self, title, message):
         QMessageBox.about(self, title, message)
 
