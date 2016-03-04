@@ -10,15 +10,17 @@ class mainWindow(QMainWindow):
     '''this class creates a main window to run the main program'''
     def __init__(self):
         super(mainWindow, self).__init__()
-        self.currency_class = Currency()
+        self.discriminant_class = Discriminant()
         self.setWindowTitle('Discriminant Game')
         self.title_font = QFont('Helvetica', 90, QFont.Helvetica)
         self.button_font = QFont('Helvetica', 30, QFont.Helvetica)
         self.create_main_window_layout()
         self.create_start_timer_layout()
+        self.create_question_layout()
         self.stacked_layout = QStackedLayout()
         self.stacked_layout.addWidget(self.view_main_layout)
         self.stacked_layout.addWidget(self.view_start_timer_layout)
+        self.stacked_layout.addWidget(self.view_question_layout)
         self.central_widget = QWidget()
         self.central_widget.setLayout(self.stacked_layout)
         self.setCentralWidget(self.central_widget)
@@ -86,45 +88,46 @@ class mainWindow(QMainWindow):
         self.view_start_timer_layout.setLayout(self.start_timer_layout)
 
     def create_question_layout(self):
-        self.convert_layout = QGridLayout()
-        self.convert_from_label = QLabel('From: ')
-        self.convert_to_label = QLabel('To: ')
-        self.convert_amount_label = QLabel('Amount: ')
-        self.convert_from_combobox = QComboBox()
-        self.convert_to_combobox = QComboBox()
-        currencyTypes = ['GBP','Euro','USD','YEN']
-        for eachType in currencyTypes:
-            self.convert_from_combobox.addItem(eachType)
-            self.convert_to_combobox.addItem(eachType)
-        self.convert_amount_line_edit = QLineEdit()
-        self.convert_submit_button = QPushButton('Convert')
+        self.question_layout = QGridLayout()
+        self.question_internal_layout = QGridLayout()
+        self.question_label = QLabel('')
+        self.question_label.setFont(self.title_font)
+        self.question_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        self.countdown_label = QLabel('10')
+        self.countdown_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        self.equal_roots_button = QButton('Equal\n Roots')
+        self.equal_roots_button.setFont(self.button_font)
+        self.imaginary_roots_button = QButton('Imaginary\n Roots')
+        self.imaiginary_roots_button.setFont(self.button_font)
+        self.real_roots_button = QButton('Real\n Roots')
+        self.real_roots_button.setFont(self.button_font)
         #############################
         #             #             #
         #     0,0     #     0,1     #
         #  From Label #     From    #
         #             #   ComboBox  #
         #############################
-        self.convert_internal_layout.addWidget(self.convert_from_label,0,0)
-        self.convert_internal_layout.addWidget(self.convert_amount_label,1,0)
-        self.convert_internal_layout.addWidget(self.convert_to_label,2,0)
-        self.convert_internal_layout.addWidget(self.convert_from_combobox,0,1)
-        self.convert_internal_layout.addWidget(self.convert_amount_line_edit,1,1)
-        self.convert_internal_layout.addWidget(self.convert_to_combobox,2,1)
+        self.question_internal_layout.addWidget(self.real_roots_button, 0, 0)
+        self.question_internal_layout.addWidget(self.equal_roots_button, 0, 1)
+        self.question_internal_layout.addWidget(self.imaginary_roots_button, 0, 2)
+        self.question_internal_widget = QWidget()
+        self.question_internal_widget.setLayout(self.question_internal_layout)
         #############################
         #           0,0             #
         #        Timer Label        #
         #############################
-        #           0,0             #
+        #           1,0             #
         #         Question          #
         #          Label            #
         #############################
-        #           1,0             #
-        #       Submit button       #
+        #           2,0             #
+        #     Internal Layout       #
         #############################
-        self.convert_layout.addLayout(self.convert_internal_layout,0,0)
-        self.convert_layout.addWidget(self.convert_submit_button,1,0)
-        self.view_start_timer_layout = QWidget()
-        self.view_start_timer_layout.setLayout(self.start_timer_layout)
+        self.question_layout.addLayout(self.countdown_label, 0, 0)
+        self.question_layout.addWidget(self.question_label, 1, 0)
+        self.question_layout.addWidget(self.question_internal_widget, 2, 0)
+        self.view_question_layout = QWidget()
+        self.view_question_layout.setLayout(self.question_layout)
         self.convert_submit_button.clicked.connect(self.convert_the_currencies)
 
     def start_action(self):
@@ -135,15 +138,36 @@ class mainWindow(QMainWindow):
         self.start_timer.start(1000)
 
     def start_timer_countdown(self):
-        self.timer_time = int(self.start_timer_label.text())
-        self.timer_time -= 1
+        self.timer_time = int(self.start_timer_label.text()) - 1
         if self.timer_time == 0:
             self.start_timer.stop()
             self.start_timer_label.setText('3')
             self.stacked_layout.setCurrentIndex(0)
+            self.start_questions()
         else:
             self.start_timer_label.setText(str(self.timer_time))
 
+    def start_questions(self):
+        self.question_num = 1
+        self.timer_time = 10
+        while question_num != 11: 
+            self.countdown_timer = QTimer()
+            self.countdown_timer.timeout.connect(self.question_timer_countdown)
+            self.countdown_timer.start(1000)
+            
+    def question_timer_countdown(self):
+        self.timer_time = int(self.countdown_label.text()) - 1
+        if self.timer_time == 0:
+            self.start_timer.stop()
+            self.countdown_label.setText('3')
+            if self.difficulty == 'God':
+                self.message_box('HAHAHAHAHAHAH', 'NICE TRY!!!!')
+            else:
+                self.message_box('Try again', 'You failed')
+            
+            self.stacked_layout.setCurrentIndex(0)
+        else:
+            self.start_timer_label.setText(str(self.timer_time))
     def message_box(self, title, message):
         QMessageBox.about(self, title, message)
 
