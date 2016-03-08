@@ -18,14 +18,17 @@ class mainWindow(QMainWindow):
         self.create_main_window_layout()
         self.create_start_timer_layout()
         self.create_question_layout()
+        self.create_image_layout()
         self.stacked_layout = QStackedLayout()
         self.stacked_layout.addWidget(self.view_main_layout)
         self.stacked_layout.addWidget(self.view_start_timer_layout)
         self.stacked_layout.addWidget(self.view_question_layout)
+        self.stacked_layout.addWidget(self.view_image_layout)
         self.central_widget = QWidget()
         self.central_widget.setLayout(self.stacked_layout)
         self.setCentralWidget(self.central_widget)
-        self.resize(600, 250)
+        self.showMaximized()
+
 
     def create_main_window_layout(self):
         self.title_label = QLabel('Discriminant')
@@ -134,6 +137,23 @@ class mainWindow(QMainWindow):
         self.real_roots_button.clicked.connect(lambda: self.answer_reaction('real'))
         self.imaginary_roots_button.clicked.connect(lambda: self.answer_reaction('imaginary'))
 
+    def create_image_layout(self):
+        self.image_layout = QGridLayout()
+        self.image_label = QLabel()
+        self.image_label.setAlignment(Qt.AlignCenter | Qt.AlignVCenter)
+        self.image_text_label = QLabel()
+        self.image_text_label.setFont(self.title_font)
+        self.image_text_label.setAlignment(Qt.AlignCenter | Qt.AlignVCenter)
+        self.image_dismiss_button = QPushButton('Okay!')
+        self.image_dismiss_button.setFont(self.button_font)
+        self.image_layout.addWidget(self.image_label, 0, 0)
+        self.image_layout.addWidget(self.image_text_label, 1, 0)
+        self.image_layout.addWidget(self.image_dismiss_button, 2, 0)
+        self.view_image_layout = QWidget()
+        self.view_image_layout.setLayout(self.image_layout)
+        self.image_dismiss_button.clicked.connect(self.image_dismiss_action)
+		
+		
     def start_action(self):
         self.timer_time = 3
         self.stacked_layout.setCurrentIndex(1)
@@ -158,7 +178,7 @@ class mainWindow(QMainWindow):
         self.question_data = self.discriminant_class.generateQuestion(
             self.difficulty
         )
-        print(self.question_data)
+        # print(self.question_data)
         self.question_label.setText(
             u'{1}x{0} + {2}x + {3}'.format(
                 QChar(0x00B2),
@@ -180,13 +200,13 @@ class mainWindow(QMainWindow):
             self.countdown_timer.stop()
             self.countdown_label.setText('10')
             if self.difficulty == 'God':
-                self.message_box(
-                    'HAHAHAHAHAHAH',
-                    "You thought you were good enough, but you weren't!"
+                self.image_box(
+                    'god-fail.jpg',
+                    "You can't just dive in\n and go full beast mode"
                 )
             else:
-                self.message_box('Too slow!', 'Better luck next time')
-            self.stacked_layout.setCurrentIndex(0)
+                self.image_box('easy-fail.jpg', 'At least you beat nick')
+                self.stacked_layout.setCurrentIndex(0)
         else:
             self.countdown_label.setText(str(self.timer_time))
 
@@ -194,23 +214,33 @@ class mainWindow(QMainWindow):
         self.countdown_timer.stop()
         if button_clicked == self.question_data['answer']:
             if self.question_num == 10:
-                self.stacked_layout.setCurrentIndex(0)
-                self.message_box(
-                    'Congratulations',
-                    'Now try the next difficulty!'
-                )
+                if self.difficulty == 'God':
+                    self.image_box('god-pass.jpg', 'Almost as good as him')
+                else:
+                    self.image_box(
+                            'easy-pass.jpg', 'Even he could do that!'
+                    )
             else:
                 self.new_question()
         else:
             self.stacked_layout.setCurrentIndex(0)
             if self.question_num == 10:
-                self.message_box('Hard Luck', 'You got so close! :(')
+                self.image_box('9-10.jpg', "Almost there...")
             else:
-                self.message_box('Try again', 'Better luck next time')
+                if self.difficulty == 'God':
+                    self.image_box('god-fail.jpg', "You can't just dive in\n and go full beast mode")
+                else:
+                    self.image_box('easy-fail.jpg', 'At least you beat nick')
 
-    def message_box(self, title, message):
-        QMessageBox.about(self, title, message)
+    def image_box(self, url, message):
+        # set image_label and image_text_label
+        self.image_label.setPixmap(QPixmap(url))
+        self.image_text_label.setText(message)
+        self.stacked_layout.setCurrentIndex(3)
 
+    def image_dismiss_action(self):
+        self.stacked_layout.setCurrentIndex(0)
+	
     def close_action(self):
         self.close()
 
