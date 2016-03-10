@@ -28,7 +28,7 @@ class DiscriminantClass:
                 self._maxCoefficient
             ) for i in range(3)
         ]
-        self._discriminant = (self._coefficients[1]) ^ 2 - 4 * self._coefficients[0] * self._coefficients[2]
+        self._discriminant = (self._coefficients[1] ^ 2) - (4 * self._coefficients[0] * self._coefficients[2])
 
         if self._discriminant > 0:
             self._answer = 'real'
